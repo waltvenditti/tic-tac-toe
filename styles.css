@@ -1,0 +1,28 @@
+* {
+    border: 1px solid red;
+}
+
+html {
+    border: 2px solid blue;
+}
+
+#game-board {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: auto;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+    width: auto;
+    height: auto;
+}
+
+.square {
+    border: 2px solid limegreen;
+    flex: 0 0 auto;
+    width: 100px;
+    height: 100px;
+}
