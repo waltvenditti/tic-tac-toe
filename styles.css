@@ -7,6 +7,34 @@ html {
     border: 2px solid blue;
 }
 
+#score-board {
+    display: flex;
+    justify-content: space-between;
+}
+
+#p1-score,
+#p2-score,
+#setting-board {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+#p1-score p,
+#p2-score p {
+    margin: 0;
+    text-align: center
+}
+
+#setting-board{
+    min-height: 100px;
+    min-width: 150px;
+}
+
+#setting-board button {
+    pointer-events: auto;
+}
+
 #game-board {
     display: flex;
     flex-direction: column;
@@ -33,4 +61,26 @@ html {
 
 .square p {
     font-size: 64px;
+}
+
+#win-result-container {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#win-result {
+    text-align: center;
+    font-size: 32px;
+    margin: 0;
+    padding-top: 8px;   
+}
+
+#play-again {
+    display: none;
+}
+
+#reset {
+    display: none;
 }
