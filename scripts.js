@@ -36,6 +36,8 @@ const Player = function(shape) {
     let active = false;
     let boardShape = shape;
     let winPoints = 0;
+    let ai = false;
+    let firstMove = false;
 
     if (!(boardShape === 'X' || boardShape === 'O')) return false; 
 
@@ -71,6 +73,22 @@ const Player = function(shape) {
         }
     }
 
+    const toggleAI = function() {
+        ai = !ai;
+    }
+
+    const checkAI = function() {
+        return ai;
+    }
+
+    const checkFirstMove = function() {
+        return firstMove;
+    }
+
+    const changeFirstMove = function() {
+        firstMove = !firstMove;
+    }
+
     const checkIfWin = function() {
         let board = gameBoard.getBoardState();
         let x = boardShape;
@@ -86,7 +104,7 @@ const Player = function(shape) {
         return win;
     }
         
-    return {getShape, getActive, changeActive, checkIfWin, getScore, addWinPoint, resetScore, switchShape};
+    return {getShape, getActive, changeActive, checkIfWin, getScore, addWinPoint, resetScore, switchShape, toggleAI, checkAI, checkFirstMove, changeFirstMove};
 };
 
 
@@ -94,39 +112,36 @@ const Player = function(shape) {
 const gameController = (function() {
     let player1 = Player('X');
     player1.changeActive();
+    player1.changeFirstMove();
     let player2 = Player('O');
     let squareRefFoos = [];
 
     playAgainBtn = document.querySelector('#play-again');
     resetBtn = document.querySelector('#reset');
+    changeShapesBtn = document.querySelector('#change-shape');
+    startGameBtn = document.querySelector('#start-game');
+    swapFirstBtn = document.querySelector('#swap-first');
+    toggleAIBtn = document.querySelector('#toggle-ai');
+
+    p1First = document.querySelector('#p1-first');
+    p2First = document.querySelector('#p2-first');
     p1ScoreCount = document.querySelector('#p1-span');
     p2ScoreCount = document.querySelector('#p2-span');
     p1Shape = document.querySelector('#p1shape');
     p2Shape = document.querySelector('#p2shape');
-    changeShapesBtn = document.querySelector('#change-shape');
-    startGameBtn = document.querySelector('#start-game');
-    p1Start = document.querySelector('#p1-first');
-    p2Start = document.querySelector('#p2-first');
+    p2Player = document.querySelector('#p2-player')
 
     resetBtn.addEventListener('click', clickReset);
     playAgainBtn.addEventListener('click', clickPlayAgain);
     changeShapesBtn.addEventListener('click', clickChangeShapes);
-    startGameBtn.addEventListener('click', clickStartGame)
+    startGameBtn.addEventListener('click', clickStartGame);
+    swapFirstBtn.addEventListener('click', clickSwapFirst);
+    toggleAIBtn.addEventListener('click', clickToggleAI);
 
     const switchCurrent = function() {
         player1.changeActive();
         player2.changeActive();
     }
-
-    /*
-            if (player1.getActive()) {
-            p1Start.textContent = 'First Move';
-            p2Start.textContent = '';
-        } else if (player2.getActive()) {
-            p2Start.textContent = 'First Move';
-            p1Start.textContent = '';
-        }
-    */
 
     const getCurrentPlayer = function() {
         if (player1.getActive() === true) return player1;
@@ -182,18 +197,46 @@ const gameController = (function() {
         resetBtn.style['display'] = 'inline';
     }
 
+    function checkForAI() {
+        return player2.checkAI();
+    }
+
+    function checkEndGame() {
+        let winResult = checkForWinner();
+            if (winResult !== 0) {
+                endGame(winResult);
+                return true;
+            } else {
+                if (checkIfSpaceLeft() === false) {
+                    endGame(winResult);
+                    return true;
+                }
+            }
+    }
+
+    function lemming() {
+        board = gameBoard.getBoardState();
+        moves = [];
+        for (let i = 0; i < board.length; i++) {
+            if (board[i] === '') moves.push(i);
+        }
+        move = Math.floor(Math.random() * moves.length);
+        gameBoard.pickSquare(player2.getShape(), moves[move]);
+        updateWebpage.updateBoard(gameBoard.getBoardState());
+        switchCurrent();
+        checkEndGame();
+    }
+
     function clickOnSquare(currentPlayer, squareNum) {
         x = gameBoard.pickSquare(currentPlayer, squareNum);
         if (x !== false) {
             updateWebpage.updateBoard(gameBoard.getBoardState());
-            gameController.switchCurrent();
-            let winResult = gameController.checkForWinner();
-            if (winResult !== 0) {
-                gameController.endGame(winResult);
-            } else {
-                if (checkIfSpaceLeft() === false) {
-                    gameController.endGame(winResult);
-                }
+            switchCurrent();
+            if (checkEndGame()) return;
+
+            if (checkForAI()) {
+                console.log('ai go');
+                lemming();
             }
         };
     }
@@ -205,6 +248,12 @@ const gameController = (function() {
         updateWebpage.updateBoard(gameBoard.getBoardState());
         displayWin('');
         turnOnSquares();
+        swapFirstPlayer();
+        getFirstMoveDisplay();
+        determineFirstMove();
+        if (player2.checkAI() && player2.getActive()) {
+            lemming();
+        };
     }
 
     function clickReset() {
@@ -221,11 +270,20 @@ const gameController = (function() {
         turnOffSquares();
         playAgainBtn.style['display'] = 'none';
         resetBtn.style['display'] = 'none';
+        if (player1.checkFirstMove() !== true) {
+            swapFirstPlayer();
+            getFirstMoveDisplay();
+        }
+        if (player1.getShape() !== 'X') {
+            clickChangeShapes();
+        }
+        if (player2.checkAI() === true) {
+            clickToggleAI();
+
+        }
     }
 
     function clickChangeShapes() {
-        playAgainBtn.style['display'] = 'none';
-        resetBtn.style['display'] = 'none';
         player1.switchShape();
         player2.switchShape();
         p1Shape.textContent = player1.getShape();
@@ -238,6 +296,51 @@ const gameController = (function() {
             btns[i].style['pointer-events'] = 'none';
         }
         turnOnSquares();
+        determineFirstMove();
+        if (player2.checkAI() && player2.getActive()) {
+            lemming();
+        }
+    }
+
+    function clickSwapFirst() {
+        swapFirstPlayer();
+        getFirstMoveDisplay();
+    }
+
+    function clickToggleAI() {
+        player2.toggleAI();
+        if (p2Player.textContent === 'Human') {
+            p2Player.textContent = 'AI';
+        } else if (p2Player.textContent === 'AI') {
+            p2Player.textContent = 'Human';
+        }
+    }
+
+    function determineFirstMove() {
+        if (player1.checkFirstMove() === true) {
+            if (player1.getActive() !== true) {
+                switchCurrent();
+            }
+        } else if (player2.checkFirstMove() === true) {
+            if (player2.getActive() !== true) {
+                switchCurrent();
+            }
+        }
+    }
+
+    function getFirstMoveDisplay() {
+        if (player1.checkFirstMove() === true) {
+            p1First.textContent = 'First Move';
+            p2First.textContent = '';
+        } else if (player2.checkFirstMove() === true) {
+            p2First.textContent = 'First Move';
+            p1First.textContent = '';
+        }
+    }
+
+    function swapFirstPlayer() {
+        player1.changeFirstMove();
+        player2.changeFirstMove();
     }
 
     function coinFlip() {
