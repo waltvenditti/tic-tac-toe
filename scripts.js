@@ -227,6 +227,10 @@ const gameController = (function() {
         checkEndGame();
     }
 
+    function reaper() {
+        
+    }
+
     function clickOnSquare(currentPlayer, squareNum) {
         x = gameBoard.pickSquare(currentPlayer, squareNum);
         if (x !== false) {
@@ -235,7 +239,6 @@ const gameController = (function() {
             if (checkEndGame()) return;
 
             if (checkForAI()) {
-                console.log('ai go');
                 lemming();
             }
         };

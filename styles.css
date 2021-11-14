@@ -23,7 +23,8 @@ html {
 #p1-score p,
 #p2-score p {
     margin: 0;
-    text-align: center
+    text-align: center;
+    min-width: 160px;
 }
 
 #setting-board{
