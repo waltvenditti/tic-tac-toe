@@ -1,4 +1,6 @@
-
+//new button for ai
+//deal with button reverting to human p2
+//implement reaper
 
 const gameBoard = (function() {
     let board = ['','','','','','','','',''];
@@ -88,24 +90,22 @@ const Player = function(shape) {
     const changeFirstMove = function() {
         firstMove = !firstMove;
     }
-
-    const checkIfWin = function() {
-        let board = gameBoard.getBoardState();
-        let x = boardShape;
-        let win = false;
-        if ((board[0] === x && board[1] === x && board[2] === x)) win = true;
-        if ((board[3] === x && board[4] === x && board[5] === x)) win = true;
-        if ((board[6] === x && board[7] === x && board[8] === x)) win = true;
-        if ((board[0] === x && board[3] === x && board[6] === x)) win = true;
-        if ((board[1] === x && board[4] === x && board[7] === x)) win = true;
-        if ((board[2] === x && board[5] === x && board[8] === x)) win = true;
-        if ((board[0] === x && board[4] === x && board[8] === x)) win = true;
-        if ((board[2] === x && board[4] === x && board[6] === x)) win = true;
-        return win;
-    }
         
-    return {getShape, getActive, changeActive, checkIfWin, getScore, addWinPoint, resetScore, switchShape, toggleAI, checkAI, checkFirstMove, changeFirstMove};
+    return {getShape, getActive, changeActive, getScore, addWinPoint, resetScore, switchShape, toggleAI, checkAI, checkFirstMove, changeFirstMove};
 };
+
+
+
+let updateWebpage = (function() {
+    const updateBoard = function(currentBoard) {
+        for (let i = 0; i < currentBoard.length; i++) {
+            let x = `#p${i}`;
+            box = document.querySelector(x);
+            box.textContent = currentBoard[i];
+        }
+    }
+    return {updateBoard};
+})();
 
 
 
@@ -149,8 +149,8 @@ const gameController = (function() {
     }
 
     const checkForWinner = function() {
-        if (player1.checkIfWin() === true) return 1;
-        else if (player2.checkIfWin() === true) return 2;
+        if (checkIfWin(player1, gameBoard.getBoardState()) === true) return 1;
+        else if (checkIfWin(player2, gameBoard.getBoardState()) === true) return 2;
         else return 0;
     }
 
@@ -365,19 +365,77 @@ const gameController = (function() {
         return false; 
     }
 
-    return {getCurrentPlayer, switchCurrent, checkForWinner, endGame, turnOffSquares, turnOnSquares}
-})();
+    function minimax(caller, boardState, self) {
+        let nextCaller;
+        let avMoves = [];
+        let scores = [];
+        if (caller === player1) {
+            nextCaller = player2;
+        } else nextCaller = player1;
 
+        //generate all possible +1 moves
+        for (let i = 0; i < boardState.length; i++) {
+            if (boardState[i] === '') {
+                let newBoard = boardState;
+                newBoard[i] = caller.getShape();
+                avMoves.push(newBoard);
+            };
+        };
 
-
-let updateWebpage = (function() {
-    const updateBoard = function(currentBoard) {
-        for (let i = 0; i < currentBoard.length; i++) {
-            let x = `#p${i}`;
-            box = document.querySelector(x);
-            box.textContent = currentBoard[i];
+        //generate empty list of score for each move
+        for (i = 0; i < avMoves.length; i++) {
+            scores.push(0);
         }
+
+        //calculate score for each move
+        for (let i = 0; i < avMoves.length; i++) {
+            if (checkIfWin(caller, avMoves[i]) === true) {
+                if (self === true) scores[i] = 10;
+                else scores[i] = -10;
+            };
+        };
+
+        //call minimax on all states with score of 0
+        for (i = 0; i < scores.length; i++) {
+            if (scores[i] === 0) {
+                scores[i] = minimax(nextCaller, avMoves[i], !self);
+            };
+        };
+
+        //pick which score to return
+        let maxIndex = 0;
+        let minIndex = 0;
+        for (i = 0; i < scores.length; i++) {
+            if (scores[i] > scores[maxIndex]) maxIndex = i;
+            if (scores[i] < scores[minIndex]) minIndex = i;
+        }
+        if (self === true) return maxIndex;
+        else return minIndex; 
     }
-    return {updateBoard};
+
+    return {getCurrentPlayer, switchCurrent, checkForWinner, endGame, turnOffSquares, turnOnSquares, minimax}
 })();
+
+const checkIfWin = function(player, board) {
+    let x = player.getShape();
+    let win = false;
+    if ((board[0] === x && board[1] === x && board[2] === x)) win = true;
+    if ((board[3] === x && board[4] === x && board[5] === x)) win = true;
+    if ((board[6] === x && board[7] === x && board[8] === x)) win = true;
+    if ((board[0] === x && board[3] === x && board[6] === x)) win = true;
+    if ((board[1] === x && board[4] === x && board[7] === x)) win = true;
+    if ((board[2] === x && board[5] === x && board[8] === x)) win = true;
+    if ((board[0] === x && board[4] === x && board[8] === x)) win = true;
+    if ((board[2] === x && board[4] === x && board[6] === x)) win = true;
+    return win;
+}
+
+
+
+
+
+
+
+
+
 

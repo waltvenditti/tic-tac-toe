@@ -36,6 +36,11 @@ html {
     pointer-events: auto;
 }
 
+#toggle-ai,
+#toggle-ai-hard {
+    text-align: left;
+}
+
 #game-board {
     display: flex;
     flex-direction: column;
