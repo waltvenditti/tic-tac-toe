@@ -38,7 +38,8 @@ const Player = function(shape) {
     let active = false;
     let boardShape = shape;
     let winPoints = 0;
-    let ai = false;
+    let aiLemming = false;
+    let aiReaper = false;
     let firstMove = false;
 
     if (!(boardShape === 'X' || boardShape === 'O')) return false; 
@@ -76,11 +77,21 @@ const Player = function(shape) {
     }
 
     const toggleAI = function() {
-        ai = !ai;
+        aiLemming = !aiLemming;
+        if (aiReaper === true) aiReaper = false;
     }
 
     const checkAI = function() {
-        return ai;
+        return aiLemming;
+    }
+
+    const toggleAIHard = function() {
+        aiReaper = !aiReaper;
+        if (aiLemming === true) aiLemming = false;
+    }
+
+    const checkAIHard = function() {
+        return aiReaper;
     }
 
     const checkFirstMove = function() {
@@ -91,7 +102,7 @@ const Player = function(shape) {
         firstMove = !firstMove;
     }
         
-    return {getShape, getActive, changeActive, getScore, addWinPoint, resetScore, switchShape, toggleAI, checkAI, checkFirstMove, changeFirstMove};
+    return {getShape, getActive, changeActive, getScore, addWinPoint, resetScore, switchShape, toggleAI, checkAI, toggleAIHard, checkAIHard, checkFirstMove, changeFirstMove};
 };
 
 
@@ -122,6 +133,7 @@ const gameController = (function() {
     startGameBtn = document.querySelector('#start-game');
     swapFirstBtn = document.querySelector('#swap-first');
     toggleAIBtn = document.querySelector('#toggle-ai');
+    toggleAIHardBtn = document.querySelector('#toggle-ai-hard');
 
     p1First = document.querySelector('#p1-first');
     p2First = document.querySelector('#p2-first');
@@ -137,6 +149,7 @@ const gameController = (function() {
     startGameBtn.addEventListener('click', clickStartGame);
     swapFirstBtn.addEventListener('click', clickSwapFirst);
     toggleAIBtn.addEventListener('click', clickToggleAI);
+    toggleAIHardBtn.addEventListener('click', clickToggleAIHard);
 
     const switchCurrent = function() {
         player1.changeActive();
@@ -197,17 +210,13 @@ const gameController = (function() {
         resetBtn.style['display'] = 'inline';
     }
 
-    function checkForAI() {
-        return player2.checkAI();
-    }
-
     function checkEndGame() {
         let winResult = checkForWinner();
             if (winResult !== 0) {
                 endGame(winResult);
                 return true;
             } else {
-                if (checkIfSpaceLeft() === false) {
+                if (checkIfSpaceLeft(gameBoard.getBoardState()) === false) {
                     endGame(winResult);
                     return true;
                 }
@@ -228,7 +237,11 @@ const gameController = (function() {
     }
 
     function reaper() {
-        
+        move = minimax(player2, gameBoard.getBoardState(), true, 0);
+        gameBoard.pickSquare(player2.getShape(), move);
+        updateWebpage.updateBoard(gameBoard.getBoardState());
+        switchCurrent();
+        checkEndGame();
     }
 
     function clickOnSquare(currentPlayer, squareNum) {
@@ -238,9 +251,8 @@ const gameController = (function() {
             switchCurrent();
             if (checkEndGame()) return;
 
-            if (checkForAI()) {
-                lemming();
-            }
+            if (player2.checkAI()) lemming();
+            else if (player2.checkAIHard()) reaper();
         };
     }
 
@@ -254,8 +266,9 @@ const gameController = (function() {
         swapFirstPlayer();
         getFirstMoveDisplay();
         determineFirstMove();
-        if (player2.checkAI() && player2.getActive()) {
-            lemming();
+        if ((player2.checkAI() || player2.checkAIHard()) && player2.getActive()) {
+            if (player2.checkAI()) lemming();
+            else if (player2.checkAIHard()) reaper();
         };
     }
 
@@ -282,7 +295,9 @@ const gameController = (function() {
         }
         if (player2.checkAI() === true) {
             clickToggleAI();
-
+        }
+        if (player2.checkAIHard() === true) {
+            clickToggleAIHard(); 
         }
     }
 
@@ -300,8 +315,9 @@ const gameController = (function() {
         }
         turnOnSquares();
         determineFirstMove();
-        if (player2.checkAI() && player2.getActive()) {
-            lemming();
+        if ((player2.checkAI() || player2.checkAIHard()) && player2.getActive()) {
+            if (player2.checkAI()) lemming();
+            else if (player2.checkAIHard()) reaper();
         }
     }
 
@@ -312,11 +328,16 @@ const gameController = (function() {
 
     function clickToggleAI() {
         player2.toggleAI();
-        if (p2Player.textContent === 'Human') {
-            p2Player.textContent = 'AI';
-        } else if (p2Player.textContent === 'AI') {
-            p2Player.textContent = 'Human';
-        }
+        if (p2Player.textContent !== 'AI: Lemming') {
+            p2Player.textContent = 'AI: Lemming';
+        } else p2Player.textContent = 'Human';
+    }
+
+    function clickToggleAIHard() {
+        player2.toggleAIHard();
+        if (p2Player.textContent !== 'AI: Reaper') {
+            p2Player.textContent = 'AI: Reaper';
+        } else p2Player.textContent = 'Human';
     }
 
     function determineFirstMove() {
@@ -357,17 +378,17 @@ const gameController = (function() {
         ele.textContent = message;
     }
 
-    function checkIfSpaceLeft() {
-        board = gameBoard.getBoardState();
+    function checkIfSpaceLeft(board) {
         for (let i = 0; i < board.length; i++) {
             if (board[i] === '') return true;
         }
         return false; 
     }
 
-    function minimax(caller, boardState, self) {
+    function minimax(caller, boardState, self, counter) {
         let nextCaller;
         let avMoves = [];
+        let avMovesIndices = [];
         let scores = [];
         if (caller === player1) {
             nextCaller = player2;
@@ -376,19 +397,20 @@ const gameController = (function() {
         //generate all possible +1 moves
         for (let i = 0; i < boardState.length; i++) {
             if (boardState[i] === '') {
-                let newBoard = boardState;
+                let newBoard = copyArray(boardState);
+                avMovesIndices.push(i);
                 newBoard[i] = caller.getShape();
                 avMoves.push(newBoard);
             };
         };
 
-        //generate empty list of score for each move
+        //generate empty list of scores for each move
         for (i = 0; i < avMoves.length; i++) {
             scores.push(0);
-        }
+        };
 
         //calculate score for each move
-        for (let i = 0; i < avMoves.length; i++) {
+        for (i = 0; i < avMoves.length; i++) {
             if (checkIfWin(caller, avMoves[i]) === true) {
                 if (self === true) scores[i] = 10;
                 else scores[i] = -10;
@@ -396,21 +418,42 @@ const gameController = (function() {
         };
 
         //call minimax on all states with score of 0
+        // and which are not draws
+        //FIGURE THIS SHIT OUT 
         for (i = 0; i < scores.length; i++) {
-            if (scores[i] === 0) {
-                scores[i] = minimax(nextCaller, avMoves[i], !self);
+            if (scores[i] === 0 && checkIfSpaceLeft(avMoves[i]) === true) {
+                scores[i] = minimax(nextCaller, avMoves[i], !self, (counter + 1));
             };
         };
 
         //pick which score to return
-        let maxIndex = 0;
-        let minIndex = 0;
-        for (i = 0; i < scores.length; i++) {
-            if (scores[i] > scores[maxIndex]) maxIndex = i;
-            if (scores[i] < scores[minIndex]) minIndex = i;
+        if (counter !== 0) {
+            let maxScore = 0;
+            let minScore = 0;
+            for (i = 0; i < scores.length; i++) {
+                if (scores[i] > maxScore) maxScore = scores[i];
+                if (scores[i] < minScore) minScore = scores[i];
+            }
+            if (self === true) return maxScore;
+            else return minScore; 
+
+        } if (counter === 0) {
+            let bestMove = 0;
+            for (i = 0; i < scores.length; i++) {
+                if (scores[i] > scores[bestMove]) {
+                    bestMove = i;
+                }
+            }
+            return avMovesIndices[bestMove];
         }
-        if (self === true) return maxIndex;
-        else return minIndex; 
+    }
+
+    function copyArray(array) {
+        let newArray = [];
+        for (let i = 0; i < array.length; i++) {
+            newArray[i] = array[i];
+        }
+        return newArray;
     }
 
     return {getCurrentPlayer, switchCurrent, checkForWinner, endGame, turnOffSquares, turnOnSquares, minimax}
