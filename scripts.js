@@ -1,6 +1,4 @@
-//new button for ai
-//deal with button reverting to human p2
-//implement reaper
+
 
 const gameBoard = (function() {
     let board = ['','','','','','','','',''];
@@ -367,12 +365,6 @@ const gameController = (function() {
         player2.changeFirstMove();
     }
 
-    function coinFlip() {
-        result = Math.floor(Math.random()*2) + 1;
-        if (result === 1) return true;
-        else return false;
-    }
-
     function displayWin(message) {
         ele = document.querySelector('#win-result');
         ele.textContent = message;
@@ -415,27 +407,33 @@ const gameController = (function() {
                 if (self === true) scores[i] = 10;
                 else scores[i] = -10;
             };
+            if (counter === 0) {
+                console.log(`calc score for loop, it.#${i}`);
+            }
         };
 
         //call minimax on all states with score of 0
         // and which are not draws
-        //FIGURE THIS SHIT OUT 
-        for (i = 0; i < scores.length; i++) {
+        for (i = 0; i < avMoves.length; i++) {
             if (scores[i] === 0 && checkIfSpaceLeft(avMoves[i]) === true) {
                 scores[i] = minimax(nextCaller, avMoves[i], !self, (counter + 1));
             };
+            if (counter === 0) console.log(`call minimax for loop, it.#${i}`);
         };
 
         //pick which score to return
         if (counter !== 0) {
-            let maxScore = 0;
-            let minScore = 0;
+            let maxScore = scores[0];
+            let minScore = scores[0];
             for (i = 0; i < scores.length; i++) {
                 if (scores[i] > maxScore) maxScore = scores[i];
                 if (scores[i] < minScore) minScore = scores[i];
             }
-            if (self === true) return maxScore;
-            else return minScore; 
+            if (self === true) {
+                return maxScore;
+            } else {
+                return minScore; 
+            }
 
         } if (counter === 0) {
             let bestMove = 0;
