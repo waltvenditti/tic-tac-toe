@@ -397,35 +397,33 @@ const gameController = (function() {
         };
 
         //generate empty list of scores for each move
-        for (i = 0; i < avMoves.length; i++) {
+        for (let i = 0; i < avMoves.length; i++) {
             scores.push(0);
         };
 
         //calculate score for each move
-        for (i = 0; i < avMoves.length; i++) {
+        for (let i = 0; i < avMoves.length; i++) {
             if (checkIfWin(caller, avMoves[i]) === true) {
                 if (self === true) scores[i] = 10;
                 else scores[i] = -10;
             };
-            if (counter === 0) {
-                console.log(`calc score for loop, it.#${i}`);
-            }
         };
 
+        //console.log(`rec${counter}, ${caller.getShape()}, ${self}, ${counter}`);
+      
         //call minimax on all states with score of 0
         // and which are not draws
-        for (i = 0; i < avMoves.length; i++) {
-            if (scores[i] === 0 && checkIfSpaceLeft(avMoves[i]) === true) {
+        for (let i = 0; (i < avMoves.length); i++) {
+            if (scores[i] === 0 && checkIfSpaceLeft(avMoves[i]) === true) 
                 scores[i] = minimax(nextCaller, avMoves[i], !self, (counter + 1));
-            };
-            if (counter === 0) console.log(`call minimax for loop, it.#${i}`);
+            
         };
 
         //pick which score to return
         if (counter !== 0) {
             let maxScore = scores[0];
             let minScore = scores[0];
-            for (i = 0; i < scores.length; i++) {
+            for (let i = 0; i < scores.length; i++) {
                 if (scores[i] > maxScore) maxScore = scores[i];
                 if (scores[i] < minScore) minScore = scores[i];
             }
@@ -437,7 +435,7 @@ const gameController = (function() {
 
         } if (counter === 0) {
             let bestMove = 0;
-            for (i = 0; i < scores.length; i++) {
+            for (let i = 0; i < scores.length; i++) {
                 if (scores[i] > scores[bestMove]) {
                     bestMove = i;
                 }
