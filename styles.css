@@ -24,7 +24,7 @@ h1 {
     text-align: center;
     margin: 0;
     margin-bottom: 36px;
-    background-color: ;
+    background-color: #FFECEC;
     border: 3px solid darkred;
     border-left: 0;
     border-right: 0;
@@ -81,6 +81,10 @@ h1 {
 #start-button-container {
     display: flex;
     justify-content: center;
+}
+
+#start-game {
+    flex: 1 1 auto;
 }
 
 button {
