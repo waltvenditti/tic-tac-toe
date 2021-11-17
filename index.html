@@ -7,23 +7,30 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <h1>TIC TAC TOE</h1>
     <div id='score-board'>
         <div id='p1-score'>
-            <p>Player 1 Score: <span id='p1-span'>0</span></p>
-            <p id='p1shape'>X</p>
-            <p>Human<p>
+            <p class='title'>Player 1</p>
+            <p>Score: <span id='p1-span'>0</span></p>
+            <p>Shape: <span id='p1shape'>X</span></p>
+            <p>Human</p>
             <p id='p1-first'>First Move</p>
         </div>
         <div id='setting-board'>
-            <button id='change-shape'>Change Shapes</button>
-            <button id='swap-first'>Swap First</button>
-            <button id='toggle-ai'>Toggle AI: Lemming</button>
-            <button id='toggle-ai-hard'>Toggle AI: Reaper</button>
-            <button id='start-game'>Start Game</button>
+            <div id='setting-button-container'>
+                <button id='change-shape'>Change Shapes</button>
+                <button id='swap-first'>Swap First</button>
+                <button id='toggle-ai'>Toggle AI: Lemming</button>
+                <button id='toggle-ai-hard'>Toggle AI: Reaper</button>
+            </div>
+            <div id='start-button-container'>
+                <button id='start-game'>Start Game</button>
+            </div>
         </div>
         <div id='p2-score'>
-            <p>Player 2 Score: <span id='p2-span'>0</span></p>
-            <p id='p2shape'>O</p>
+            <p class='title'>Player 2</p>
+            <p>Score: <span id='p2-span'>0</span></p>
+            <p>Shape: <span id='p2shape'>O</span></p>
             <p id='p2-player'>Human</p>
             <p id='p2-first'></p>
         </div>
@@ -65,8 +72,10 @@
     </div>
     <div id='win-result-container'>
         <p id='win-result'></p>
-        <button id='play-again'>New Round</button>
-        <button id='reset'>Reset</button>
+        <div id='win-result-container-buttons'>
+            <button id='play-again'>New Round</button>
+            <button id='reset'>Reset</button>
+        </div>
     <div>
 </body>
 </html>
