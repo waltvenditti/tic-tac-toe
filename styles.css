@@ -1,11 +1,13 @@
 @font-face {
-    font-family: 'chalk board';
-    src: url(/chalk-board/chalk-board-demo/Chalk\ Board.ttf);
+    font-family: 'magical sans serif';
+    src: url(/magical-sans-serif/Magical-Stylish-Sans-Serif-Demo.otf);
 }
 
 * {
     border: 0px solid red;
     caret-color: transparent;
+    font-family: 'magical sans serif', sans-serif;
+    font-size: 16px;
 }
 
 html {
@@ -18,6 +20,7 @@ body {
 }
 
 h1 {
+    font-size: 48px;
     text-align: center;
     margin: 0;
     margin-bottom: 36px;
